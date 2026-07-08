@@ -1,10 +1,10 @@
-# DocuAgent-Rags and LangChain Day 1
+# DocuAgent RAGs and LangChain: Day 1
 
-Day 1 ka kaam yeh tha ke project ko bilkul clean base par khara kiya jaye, jahan documentation files ko ingest karke local vector knowledge base banaya ja sake. Is phase mein focus simple rakha gaya: folder structure, dependency contract, secure environment variable setup, aur ek runnable ingestion pipeline.
+Day 1 was all about getting the project onto a clean base so we could turn local documentation into a searchable vector knowledge base. The focus stayed simple: set up the folder structure, define the dependency contract, wire the environment variables, and keep the ingestion pipeline runnable.
 
 ## What This Day 1 Setup Does
 
-Yeh starter setup local files ko read karta hai, unko meaningful chunks mein split karta hai, aur phir Google Gemini embeddings ke through Chroma vector database mein save karta hai. Simple alfaaz mein: aapki docs ko searchable knowledge base mein convert karta hai.
+This starter setup reads local files, splits them into meaningful chunks, and stores the results in a Chroma vector database using Google Gemini embeddings. In plain English, it converts your documents into something the app can search semantically.
 
 ## Project Structure
 
@@ -21,7 +21,7 @@ core_engine/
 
 ## Tools And Dependencies
 
-The Day 1 stack is based on these packages:
+The Day 1 stack uses these packages:
 
 - FastAPI and Uvicorn for future API work
 - LangChain for document loading, splitting, and vector orchestration
@@ -32,8 +32,8 @@ The Day 1 stack is based on these packages:
 
 ## Environment Setup
 
-1. Place your Google AI Studio key inside [.env](.env) using the `GEMINI_API_KEY` variable.
-2. Keep your actual key private. Do not commit `.env` to source control.
+1. Add your Google AI Studio key to [.env](.env) using the `GEMINI_API_KEY` variable.
+2. Keep the real key private. Do not commit `.env` to source control.
 3. Put your source documents inside [data_source/](data_source/).
 
 Example:
@@ -78,5 +78,5 @@ If `GEMINI_API_KEY` is missing, the script will stop early and ask you to add it
 ## Notes For Day 1
 
 - The current environment on this machine uses Python 3.13 x86, so package installation may need a compatible Python build on some systems.
-- The code itself is structured and compiles cleanly.
+- The code is structured and compiles cleanly.
 - The repo is ready for the next phase, where we can add an API layer or a query interface on top of the vector store.
