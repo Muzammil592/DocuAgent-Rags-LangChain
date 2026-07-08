@@ -1,0 +1,6 @@
+DocuAgent Day 1 sample
+
+This is a starter document for the ingestion pipeline.
+It exists to verify directory loading, chunking, and vector indexing.
+
+Add more markdown, text, or PDF files here as you build the knowledge base.
