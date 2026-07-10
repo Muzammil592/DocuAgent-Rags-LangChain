@@ -21,6 +21,15 @@ If the local context does not contain the answer, the chain returns:
 Error: Requested technical mapping absent within local knowledge base vectors.
 ```
 
+## What Day 3 Adds
+
+Day 3 adds [main.py](main.py), which wraps the retrieval pipeline behind a FastAPI service and keeps per-session chat history in memory so follow-up questions stay grounded in the same conversation.
+
+The API exposes:
+
+1. `GET /api/v1/health` for service checks
+2. `POST /api/v1/query` for conversational RAG requests
+
 ## Project Structure
 
 ```text
@@ -28,6 +37,7 @@ core_engine/
 ├── .env
 ├── .gitignore
 ├── README.md
+├── main.py
 ├── ingestion.py
 ├── retrieval.py
 ├── requirements.txt
@@ -91,11 +101,14 @@ From the `core_engine` folder:
 pip install -r requirements.txt
 python ingestion.py
 python retrieval.py
+uvicorn main:app --reload --port 8000
 ```
 
 If the folder is empty, add a file like `data_source/sample.txt` first and run the script again.
 
 For Day 2, make sure `chroma_db/` already exists before running `python retrieval.py`.
+
+For Day 3, make sure `chroma_db/` exists and `GEMINI_API_KEY` is set before starting the API.
 
 ## Expected Output
 
