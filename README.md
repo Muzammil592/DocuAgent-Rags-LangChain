@@ -1,34 +1,32 @@
-# DocuAgent RAGs and LangChain: Day 1 and Day 2
+# DocuAgent Terminal CLI
 
-Day 1 was all about getting the project onto a clean base so we could turn local documentation into a searchable vector knowledge base. Day 2 builds on that foundation with a stricter retrieval engine that expands each question into multiple semantic variants before searching the local Chroma store.
+DocuAgent now includes a standalone terminal-first interface in [docu_agent_cli.py](docu_agent_cli.py). It can ingest a new document into a local Chroma database or open a direct chat session against an existing knowledge base, all from one interactive console flow.
 
-## What This Day 1 Setup Does
+## What The CLI Does
 
-This starter setup reads local files, splits them into meaningful chunks, and stores the results in a Chroma vector database using Google Gemini embeddings. In plain English, it converts your documents into something the app can search semantically.
+The CLI reads local `.pdf`, `.txt`, and `.md` files, splits them into chunks, stores the vectors in Chroma using Google Gemini embeddings, and then starts an interactive retrieval-augmented chat loop.
 
-## What Day 2 Adds
-
-Day 2 introduces [retrieval.py](retrieval.py), which changes the query flow from single-shot retrieval to a multi-query pipeline:
-
-1. Expand the user question into 3 different technical search variants.
-2. Search the local Chroma database for each variant in parallel.
-3. De-duplicate retrieved chunks before building the final context.
-4. Feed the context into a strict prompt that only allows grounded answers from local documentation.
-
-If the local context does not contain the answer, the chain returns:
+If the local context does not contain the answer, the assistant responds with:
 
 ```text
-Error: Requested technical mapping absent within local knowledge base vectors.
+I cannot find this information in the provided documentation.
 ```
 
-## What Day 3 Adds
+## Project Structure
 
-Day 3 adds [main.py](main.py), which wraps the retrieval pipeline behind a FastAPI service and keeps per-session chat history in memory so follow-up questions stay grounded in the same conversation.
-
-The API exposes:
-
-1. `GET /api/v1/health` for service checks
-2. `POST /api/v1/query` for conversational RAG requests
+```text
+core_engine/
+├── .env
+├── .gitignore
+├── README.md
+├── docu_agent_cli.py
+├── ingestion.py
+├── main.py
+├── retrieval.py
+├── requirements.txt
+└── data_source/
+    └── sample.txt
+```
 
 ## Project Structure
 
@@ -47,10 +45,9 @@ core_engine/
 
 ## Tools And Dependencies
 
-The Day 1 and Day 2 stack uses these packages:
+The CLI uses these packages:
 
-- FastAPI and Uvicorn for future API work
-- LangChain for document loading, splitting, and vector orchestration
+- LangChain for document loading, splitting, and retrieval orchestration
 - Chroma for local vector storage
 - Google GenAI embeddings for semantic indexing
 - Gemini chat models for grounded answer generation
@@ -69,29 +66,20 @@ Example:
 GEMINI_API_KEY=...
 ```
 
-## Ingestion Flow
+## CLI Flow
 
-The pipeline in [ingestion.py](ingestion.py) follows this path:
+The pipeline in [docu_agent_cli.py](docu_agent_cli.py) follows this path:
 
 1. Load environment variables from `.env`
 2. Check that `GEMINI_API_KEY` is available
-3. Read `.md`, `.txt`, and `.pdf` files from `data_source/`
-4. Split documents into overlapping chunks with `RecursiveCharacterTextSplitter`
-5. Convert chunks into embeddings with Google Gemini
-6. Store the vectors locally in `chroma_db/`
+3. Ask whether to ingest a new document or chat with existing vectors
+4. Load the selected `.pdf`, `.txt`, or `.md` file
+5. Split the document into overlapping chunks with `RecursiveCharacterTextSplitter`
+6. Convert chunks into embeddings with Google Gemini
+7. Store the vectors locally in `local_chroma_db/`
+8. Start an infinite chat loop with conversational memory
 
-## Retrieval Flow
-
-The pipeline in [retrieval.py](retrieval.py) follows this path:
-
-1. Load environment variables from `.env`
-2. Confirm that `GEMINI_API_KEY` is available
-3. Open the local Chroma database at `chroma_db/`
-4. Generate 3 semantic query variants for the user question
-5. Search Chroma in parallel for each query variant
-6. De-duplicate the retrieved chunks
-7. Build a strict prompt with the retrieved context only
-8. Send the prompt to `gemini-2.5-flash`
+The legacy `ingestion.py`, `retrieval.py`, and `main.py` files are still present, but the new CLI is the recommended entry point for terminal use.
 
 ## How To Run
 
@@ -99,39 +87,33 @@ From the `core_engine` folder:
 
 ```powershell
 pip install -r requirements.txt
-python ingestion.py
-python retrieval.py
-uvicorn main:app --reload --port 8000
+python docu_agent_cli.py
 ```
 
-If the folder is empty, add a file like `data_source/sample.txt` first and run the script again.
+When the CLI starts:
 
-For Day 2, make sure `chroma_db/` already exists before running `python retrieval.py`.
+1. Press `1` to ingest a new document.
+2. Drag and drop a file path, or paste the absolute path to a `.pdf`, `.txt`, or `.md` file.
+3. After ingestion, the chat loop opens automatically.
+4. Press `2` to chat immediately with an existing `local_chroma_db/`.
+5. Type `exit` or `quit` to close the session.
 
-For Day 3, make sure `chroma_db/` exists and `GEMINI_API_KEY` is set before starting the API.
+If you already have a local Chroma database, you can launch the CLI and choose option `2` directly.
 
 ## Expected Output
 
-When everything is ready, the script should:
+When everything is ready, the CLI should:
 
-- detect your documents
-- split them into chunks
+- detect the selected document
+- split it into chunks
 - create or refresh the local Chroma database
-- print a success message for the knowledge base
-- expand a question into multiple search variants
-- retrieve relevant chunks from the local database
-- return a grounded answer or the explicit missing-context error
+- open an interactive terminal conversation loop
+- return grounded answers from local documentation only
 
-If `GEMINI_API_KEY` is missing, the script will stop early and ask you to add it.
+If `GEMINI_API_KEY` is missing, the script stops early and asks you to add it to `.env`.
 
-## Notes For Day 1
+## Notes
 
 - The current environment on this machine uses Python 3.13 x86, so package installation may need a compatible Python build on some systems.
-- The code is structured and compiles cleanly.
-- The repo is ready for the next phase, where we can add an API layer or a query interface on top of the vector store.
-
-## Notes For Day 2
-
-- `retrieval.py` is designed to fail fast if `chroma_db/` is missing.
-- The retrieval engine is intentionally strict: it only answers from local context.
-- On this machine, the pinned LangChain stack may still require a compatible Python environment before it can run end to end.
+- The CLI is the main supported entry point for this workspace.
+- `local_chroma_db/` is the vector store used by the standalone terminal tool.
